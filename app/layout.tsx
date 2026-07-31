@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Manrope, Space_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -52,6 +53,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <div className="grain-overlay" aria-hidden="true" />
         {children}
+        <Analytics />
       </body>
     </html>
   );
