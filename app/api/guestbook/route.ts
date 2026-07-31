@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { pushToList, readList, removeFromListById } from "@/lib/redis";
+import {
+  pushToList,
+  readList,
+  removeFromListById,
+  deleteHashField,
+} from "@/lib/redis";
 import type { GuestbookEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -79,6 +84,8 @@ export async function DELETE(request: NextRequest) {
     if (!removed) {
       return NextResponse.json({ error: "Message introuvable." }, { status: 404 });
     }
+
+    await deleteHashField("guestbook:reactions", id);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

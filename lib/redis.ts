@@ -137,3 +137,14 @@ export async function readHash(hashKey: string): Promise<Record<string, number>>
   const hash = memoryHashStore.get(hashKey) ?? new Map<string, number>();
   return Object.fromEntries(hash);
 }
+
+export async function deleteHashField(hashKey: string, field: string): Promise<void> {
+  const client = await getClient();
+
+  if (client) {
+    await client.hDel(hashKey, field);
+    return;
+  }
+
+  memoryHashStore.get(hashKey)?.delete(field);
+}
