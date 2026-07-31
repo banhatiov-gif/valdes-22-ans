@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wind, Send, Check, PartyPopper } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 
 const CANDLE_X = [90, 130, 170, 210, 250];
 const WISH_MAX = 140;
+const WISH_SENT_KEY = "valdes22-wish-sent";
 
 type WishStatus = "idle" | "submitting" | "sent" | "error";
 
@@ -15,6 +16,13 @@ export default function Cake() {
   const [wish, setWish] = useState("");
   const [status, setStatus] = useState<WishStatus>("idle");
   const cakeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (localStorage.getItem(WISH_SENT_KEY) === "true") {
+      setBlownOut(true);
+      setStatus("sent");
+    }
+  }, []);
 
   function handleBlow() {
     if (blownOut) return;
@@ -41,6 +49,7 @@ export default function Cake() {
         body: JSON.stringify({ message: trimmed }),
       });
       if (!res.ok) throw new Error("request failed");
+      localStorage.setItem(WISH_SENT_KEY, "true");
       setStatus("sent");
       setWish("");
     } catch {
