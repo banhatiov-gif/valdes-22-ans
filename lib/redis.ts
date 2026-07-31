@@ -52,3 +52,34 @@ export async function listLength(key: string): Promise<number> {
 
   return (memoryStore.get(key) ?? []).length;
 }
+
+// Fallback en mémoire pour les compteurs (réactions), dev sans Upstash uniquement.
+const memoryHashStore = new Map<string, Map<string, number>>();
+
+export async function incrementHashField(
+  hashKey: string,
+  field: string,
+  by: number
+): Promise<number> {
+  if (redis) {
+    return redis.hincrby(hashKey, field, by);
+  }
+
+  const hash = memoryHashStore.get(hashKey) ?? new Map<string, number>();
+  const next = Math.max(0, (hash.get(field) ?? 0) + by);
+  hash.set(field, next);
+  memoryHashStore.set(hashKey, hash);
+  return next;
+}
+
+export async function readHash(hashKey: string): Promise<Record<string, number>> {
+  if (redis) {
+    const data = (await redis.hgetall<Record<string, unknown>>(hashKey)) ?? {};
+    return Object.fromEntries(
+      Object.entries(data).map(([field, value]) => [field, Number(value)])
+    );
+  }
+
+  const hash = memoryHashStore.get(hashKey) ?? new Map<string, number>();
+  return Object.fromEntries(hash);
+}

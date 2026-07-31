@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, AlertCircle, MessageSquareHeart, PartyPopper } from "lucide-react";
+import { Send, Loader2, AlertCircle, MessageSquareHeart, PartyPopper, Heart } from "lucide-react";
 import type { GuestbookEntry } from "@/lib/types";
 import { fireConfetti } from "@/lib/confetti";
 
@@ -11,6 +11,7 @@ const MESSAGE_MAX = 280;
 const POSTIT_COLORS = ["bg-gold", "bg-coral", "bg-teal"];
 const ROTATIONS = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2", "rotate-3", "-rotate-3"];
 const CELEBRATION_MILESTONES = [10, 25, 50, 100, 200];
+const REACTED_KEY = "valdes22-reactions";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -27,6 +28,8 @@ export default function Guestbook() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
+  const [reacted, setReacted] = useState<Set<string>>(new Set());
 
   async function loadEntries() {
     setLoadState("loading");
@@ -47,7 +50,50 @@ export default function Guestbook() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => data && setStats(data))
       .catch(() => {});
+    fetch("/api/reactions", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setReactionCounts(data.reactions ?? {}))
+      .catch(() => {});
+
+    const stored = localStorage.getItem(REACTED_KEY);
+    if (stored) {
+      try {
+        setReacted(new Set(JSON.parse(stored)));
+      } catch {
+        // ignore malformed local data
+      }
+    }
   }, []);
+
+  async function handleReact(entryId: string) {
+    const alreadyReacted = reacted.has(entryId);
+    const action = alreadyReacted ? "unreact" : "react";
+
+    setReactionCounts((prev) => ({
+      ...prev,
+      [entryId]: Math.max(0, (prev[entryId] ?? 0) + (alreadyReacted ? -1 : 1)),
+    }));
+    setReacted((prev) => {
+      const next = new Set(prev);
+      if (alreadyReacted) {
+        next.delete(entryId);
+      } else {
+        next.add(entryId);
+      }
+      localStorage.setItem(REACTED_KEY, JSON.stringify([...next]));
+      return next;
+    });
+
+    try {
+      await fetch("/api/reactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryId, action }),
+      });
+    } catch {
+      // best-effort — a refresh will resync the real count if this failed
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -231,9 +277,29 @@ export default function Guestbook() {
                       aria-hidden="true"
                     />
                     <p className="line-clamp-5 text-sm font-medium">{entry.message}</p>
-                    <p className="mt-3 truncate font-display text-sm font-bold">
-                      — {entry.name}
-                    </p>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <p className="truncate font-display text-sm font-bold">
+                        — {entry.name}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleReact(entry.id)}
+                        aria-pressed={reacted.has(entry.id)}
+                        aria-label={
+                          reacted.has(entry.id)
+                            ? "Retirer mon cœur"
+                            : "Envoyer un cœur"
+                        }
+                        className="flex shrink-0 items-center gap-1 rounded-full bg-plum-deep/10 px-2 py-1 text-xs font-bold transition-transform hover:scale-105 active:scale-95"
+                      >
+                        <Heart
+                          size={12}
+                          className={reacted.has(entry.id) ? "fill-current" : ""}
+                          aria-hidden="true"
+                        />
+                        {reactionCounts[entry.id] ?? 0}
+                      </button>
+                    </div>
                   </motion.li>
                 ))}
               </AnimatePresence>
