@@ -44,3 +44,11 @@ export async function readList<T>(key: string, count = 200): Promise<T[]> {
   const list = memoryStore.get(key) ?? [];
   return list.slice(0, count).map((item) => JSON.parse(item) as T);
 }
+
+export async function listLength(key: string): Promise<number> {
+  if (redis) {
+    return redis.llen(key);
+  }
+
+  return (memoryStore.get(key) ?? []).length;
+}

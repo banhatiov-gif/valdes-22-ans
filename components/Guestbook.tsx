@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, AlertCircle, MessageSquareHeart } from "lucide-react";
+import { Send, Loader2, AlertCircle, MessageSquareHeart, PartyPopper } from "lucide-react";
 import type { GuestbookEntry } from "@/lib/types";
 import { fireConfetti } from "@/lib/confetti";
 
@@ -14,6 +14,11 @@ const CELEBRATION_MILESTONES = [10, 25, 50, 100, 200];
 
 type LoadState = "loading" | "ready" | "error";
 
+interface Stats {
+  guestbookCount: number;
+  wishesCount: number;
+}
+
 export default function Guestbook() {
   const [entries, setEntries] = useState<GuestbookEntry[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("loading");
@@ -21,6 +26,7 @@ export default function Guestbook() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
 
   async function loadEntries() {
     setLoadState("loading");
@@ -37,6 +43,10 @@ export default function Guestbook() {
 
   useEffect(() => {
     loadEntries();
+    fetch("/api/stats", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setStats(data))
+      .catch(() => {});
   }, []);
 
   async function handleSubmit(event: React.FormEvent) {
@@ -91,6 +101,20 @@ export default function Guestbook() {
           <h2 className="section-heading mt-3 text-3xl text-cream sm:text-4xl">
             Laisse un mot à Valdes
           </h2>
+
+          {stats && (
+            <div className="mt-4 flex items-center justify-center gap-4 text-xs text-cream/50">
+              <span className="flex items-center gap-1.5">
+                <MessageSquareHeart size={13} className="text-gold" aria-hidden="true" />
+                {stats.guestbookCount} message{stats.guestbookCount > 1 ? "s" : ""}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <PartyPopper size={13} className="text-coral" aria-hidden="true" />
+                {stats.wishesCount} vœu{stats.wishesCount > 1 ? "x" : ""} secret
+                {stats.wishesCount > 1 ? "s" : ""}
+              </span>
+            </div>
+          )}
         </motion.div>
 
         <motion.form

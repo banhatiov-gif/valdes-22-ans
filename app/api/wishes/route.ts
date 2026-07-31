@@ -7,7 +7,17 @@ export const dynamic = "force-dynamic";
 const KEY = "wishes:entries";
 const MESSAGE_MAX = 140;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const key = request.headers.get("x-admin-key");
+  const expected = process.env.ADMIN_PASSPHRASE;
+
+  if (!expected || key !== expected) {
+    return NextResponse.json(
+      { error: "Accès refusé." },
+      { status: 401 }
+    );
+  }
+
   try {
     const wishes = await readList<Wish>(KEY, 200);
     return NextResponse.json({ wishes });
