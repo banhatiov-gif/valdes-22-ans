@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --plum: #2d1b3d;
+  --plum-deep: #180e22;
+  --plum-light: #432b57;
+  --gold: #f0b429;
+  --coral: #f0552e;
+  --teal: #2ec4b6;
+  --cream: #fdf6e3;
+
+  /* RGB-triplet twins, used by Tailwind to apply opacity modifiers
+     (e.g. bg-plum-deep/60) — Tailwind can't derive alpha from a raw
+     hex custom property, so it needs "R G B" it can drop into rgb(). */
+  --plum-rgb: 45 27 61;
+  --plum-deep-rgb: 24 14 34;
+  --plum-light-rgb: 67 43 87;
+  --gold-rgb: 240 180 41;
+  --coral-rgb: 240 85 46;
+  --teal-rgb: 46 196 182;
+  --cream-rgb: 253 246 227;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+html,
+body {
+  background-color: var(--plum-deep);
+  color: var(--cream);
+}
+
+body {
+  font-family: var(--font-manrope), sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: var(--gold);
+  color: var(--plum-deep);
+}
+
+/* visible focus ring everywhere, keyboard-first */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* subtle film-grain overlay, fixed to viewport */
+.grain-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.glass {
+  background: rgba(253, 246, 227, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(253, 246, 227, 0.12);
+}
+
+.text-stroke-gold {
+  -webkit-text-stroke: 2px var(--gold);
+  color: transparent;
+}
+
+@media (min-width: 768px) {
+  .text-stroke-gold {
+    -webkit-text-stroke: 3px var(--gold);
+  }
+}
+
+.section-heading {
+  font-family: var(--font-fraunces), serif;
+  font-weight: 700;
+}
+
+.label-mono {
+  font-family: var(--font-space-mono), monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* organic blob mask for hero photo */
+.blob-mask {
+  border-radius: 62% 38% 55% 45% / 48% 42% 58% 52%;
+}
+
+.postit {
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.candle-flame {
+  filter: drop-shadow(0 0 6px rgba(240, 180, 41, 0.85));
+}
+
+/* a winding dotted trail, tiled vertically — reads as a literal path/road
+   running through the life-story timeline, independent of content height */
+.story-path {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='200' viewBox='0 0 40 200'%3E%3Cpath d='M20 0 C34 15 34 35 20 50 C6 65 6 85 20 100 C34 115 34 135 20 150 C6 165 6 185 20 200' fill='none' stroke='%23F0B429' stroke-width='4' stroke-linecap='round' stroke-dasharray='0.5 13'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-position: top center;
+  background-size: 40px 200px;
+  opacity: 0.55;
+}
+
+/* hides the scrollbar on the mobile nav pill while keeping it scrollable —
+   a safety net so nav items can never be clipped off-screen on narrow phones */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* thin custom scrollbar to keep the spotlight mood */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--plum-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--plum-light);
+  border-radius: 999px;
+}
