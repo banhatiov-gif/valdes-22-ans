@@ -58,6 +58,42 @@ export async function readList<T>(key: string, count = 200): Promise<T[]> {
   return list.slice(0, count).map((item) => JSON.parse(item) as T);
 }
 
+export async function removeFromListById(
+  key: string,
+  id: string
+): Promise<boolean> {
+  const client = await getClient();
+
+  const matchesId = (raw: string): boolean => {
+    try {
+      return (JSON.parse(raw) as { id?: string }).id === id;
+    } catch {
+      return false;
+    }
+  };
+
+  if (client) {
+    const raw = await client.lRange(key, 0, -1);
+    const filtered = raw.filter((item) => !matchesId(item));
+    if (filtered.length === raw.length) return false;
+
+    const multi = client.multi();
+    multi.del(key);
+    if (filtered.length > 0) {
+      multi.rPush(key, filtered);
+    }
+    await multi.exec();
+    return true;
+  }
+
+  const list = memoryStore.get(key) ?? [];
+  const filtered = list.filter((item) => !matchesId(item));
+  if (filtered.length === list.length) return false;
+
+  memoryStore.set(key, filtered);
+  return true;
+}
+
 export async function listLength(key: string): Promise<number> {
   const client = await getClient();
   if (client) return client.lLen(key);

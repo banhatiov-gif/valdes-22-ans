@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { pushToList, readList } from "@/lib/redis";
+import { pushToList, readList, removeFromListById } from "@/lib/redis";
 import type { GuestbookEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +55,36 @@ export async function POST(request: NextRequest) {
     console.error("[guestbook:POST]", error);
     return NextResponse.json(
       { error: "Impossible d'enregistrer le message." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const key = request.headers.get("x-admin-key");
+  const expected = process.env.ADMIN_PASSPHRASE;
+
+  if (!expected || key !== expected) {
+    return NextResponse.json({ error: "Accès refusé." }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    const id = typeof body?.id === "string" ? body.id : "";
+    if (!id) {
+      return NextResponse.json({ error: "id requis." }, { status: 400 });
+    }
+
+    const removed = await removeFromListById(KEY, id);
+    if (!removed) {
+      return NextResponse.json({ error: "Message introuvable." }, { status: 404 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[guestbook:DELETE]", error);
+    return NextResponse.json(
+      { error: "Impossible de supprimer le message." },
       { status: 500 }
     );
   }
