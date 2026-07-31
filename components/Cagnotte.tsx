@@ -5,7 +5,7 @@ import { MessageCircle, Gift } from "lucide-react";
 
 const PHONE = "237681920007";
 const MESSAGE =
-  "Bonjour Valdes ! Je voudrais participer à ta cagnotte d'anniversaire, comment je peux faire un dépôt ?";
+  "Bonjour Valdes ! Je voudrais te faire une surprise en participant à ta cagnotte d'anniversaire, comment je peux faire un dépôt ?";
 const WHATSAPP_URL = `https://wa.me/${PHONE}?text=${encodeURIComponent(MESSAGE)}`;
 
 export default function Cagnotte() {
@@ -37,9 +37,9 @@ export default function Cagnotte() {
         </h2>
 
         <p className="relative mx-auto mt-4 max-w-md text-balance text-sm text-cream/75 sm:text-base">
-          Pas de paiement en ligne ici — pour garder les choses simples et
-          personnelles, chaque dépôt se fait directement avec Valdes. Écris-lui
-          sur WhatsApp et il t&apos;expliquera comment faire.
+          Pas de paiement en ligne ici. Si tu as envie de lui faire une
+          surprise en faisant un dépôt, fais-le tout simplement — écris à
+          Valdes sur WhatsApp et il t&apos;expliquera comment faire.
         </p>
 
         <motion.a

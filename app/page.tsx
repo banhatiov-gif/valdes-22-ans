@@ -14,9 +14,9 @@ export default function Home() {
       <ShareButton />
       <Nav />
       <Hero />
-      <Cagnotte />
-      <Cake />
       <Guestbook />
+      <Cake />
+      <Cagnotte />
       <Gallery />
     </main>
   );
