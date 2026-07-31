@@ -7,7 +7,8 @@ import { fireConfetti } from "@/lib/confetti";
 
 const CANDLE_X = [90, 130, 170, 210, 250];
 const WISH_MAX = 140;
-const WISH_SENT_KEY = "valdes22-wish-sent";
+const WISH_COUNT_MAX = 3;
+const WISH_COUNT_KEY = "valdes22-wish-count";
 
 type WishStatus = "idle" | "submitting" | "sent" | "error";
 
@@ -15,10 +16,13 @@ export default function Cake() {
   const [blownOut, setBlownOut] = useState(false);
   const [wish, setWish] = useState("");
   const [status, setStatus] = useState<WishStatus>("idle");
+  const [wishCount, setWishCount] = useState(0);
   const cakeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (localStorage.getItem(WISH_SENT_KEY) === "true") {
+    const stored = Number(localStorage.getItem(WISH_COUNT_KEY) ?? "0");
+    if (stored > 0) {
+      setWishCount(stored);
       setBlownOut(true);
       setStatus("sent");
     }
@@ -49,12 +53,18 @@ export default function Cake() {
         body: JSON.stringify({ message: trimmed }),
       });
       if (!res.ok) throw new Error("request failed");
-      localStorage.setItem(WISH_SENT_KEY, "true");
+      const nextCount = wishCount + 1;
+      localStorage.setItem(WISH_COUNT_KEY, String(nextCount));
+      setWishCount(nextCount);
       setStatus("sent");
       setWish("");
     } catch {
       setStatus("error");
     }
+  }
+
+  function handleWriteAnother() {
+    setStatus("idle");
   }
 
   return (
@@ -166,11 +176,25 @@ export default function Cake() {
                 </div>
                 <p className="font-display text-lg text-cream">Vœu envoyé, merci !</p>
                 <p className="text-sm text-cream/60">Il rejoint tous les autres vœux, en secret.</p>
+                {wishCount < WISH_COUNT_MAX ? (
+                  <button
+                    type="button"
+                    onClick={handleWriteAnother}
+                    className="mt-3 text-xs font-semibold text-gold underline-offset-2 hover:underline"
+                  >
+                    Envoyer un autre vœu ({WISH_COUNT_MAX - wishCount} restant
+                    {WISH_COUNT_MAX - wishCount > 1 ? "s" : ""})
+                  </button>
+                ) : (
+                  <p className="mt-3 text-xs text-cream/40">
+                    Tu as envoyé tes {WISH_COUNT_MAX} vœux — merci !
+                  </p>
+                )}
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
                 <label htmlFor="wish" className="label-mono text-xs text-gold">
-                  Ton vœu pour Valdes (anonyme)
+                  Ton vœu pour Valdes (anonyme) — {wishCount}/{WISH_COUNT_MAX}
                 </label>
                 <textarea
                   id="wish"
