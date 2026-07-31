@@ -1,19 +1,31 @@
-import { Redis } from "@upstash/redis";
+import { createClient, type RedisClientType } from "redis";
 
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+const url = process.env.REDIS_URL;
 
-export const redis = url && token ? new Redis({ url, token }) : null;
-
-if (!redis && process.env.NODE_ENV !== "production") {
+if (!url && process.env.NODE_ENV !== "production") {
   console.warn(
-    "[redis] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN absents — utilisation du stockage en mémoire (non persistant)."
+    "[redis] REDIS_URL absent — utilisation du stockage en mémoire (non persistant)."
   );
 }
 
-// Fallback en mémoire pour le développement local sans Upstash.
+let clientPromise: Promise<RedisClientType> | null = null;
+
+async function getClient(): Promise<RedisClientType | null> {
+  if (!url) return null;
+
+  if (!clientPromise) {
+    const client: RedisClientType = createClient({ url });
+    client.on("error", (err) => console.error("[redis] client error", err));
+    clientPromise = client.connect().then(() => client);
+  }
+
+  return clientPromise;
+}
+
+// Fallback en mémoire pour le développement local sans Redis.
 // Non partagé entre instances serverless : uniquement pour dev.
 const memoryStore = new Map<string, string[]>();
+const memoryHashStore = new Map<string, Map<string, number>>();
 
 export async function pushToList(
   key: string,
@@ -21,10 +33,11 @@ export async function pushToList(
   maxLength = 200
 ): Promise<void> {
   const serialized = JSON.stringify(value);
+  const client = await getClient();
 
-  if (redis) {
-    await redis.lpush(key, serialized);
-    await redis.ltrim(key, 0, maxLength - 1);
+  if (client) {
+    await client.lPush(key, serialized);
+    await client.lTrim(key, 0, maxLength - 1);
     return;
   }
 
@@ -34,11 +47,11 @@ export async function pushToList(
 }
 
 export async function readList<T>(key: string, count = 200): Promise<T[]> {
-  if (redis) {
-    const raw = await redis.lrange<string>(key, 0, count - 1);
-    return raw.map((item) =>
-      typeof item === "string" ? (JSON.parse(item) as T) : (item as T)
-    );
+  const client = await getClient();
+
+  if (client) {
+    const raw = await client.lRange(key, 0, count - 1);
+    return raw.map((item) => JSON.parse(item) as T);
   }
 
   const list = memoryStore.get(key) ?? [];
@@ -46,23 +59,26 @@ export async function readList<T>(key: string, count = 200): Promise<T[]> {
 }
 
 export async function listLength(key: string): Promise<number> {
-  if (redis) {
-    return redis.llen(key);
-  }
+  const client = await getClient();
+  if (client) return client.lLen(key);
 
   return (memoryStore.get(key) ?? []).length;
 }
-
-// Fallback en mémoire pour les compteurs (réactions), dev sans Upstash uniquement.
-const memoryHashStore = new Map<string, Map<string, number>>();
 
 export async function incrementHashField(
   hashKey: string,
   field: string,
   by: number
 ): Promise<number> {
-  if (redis) {
-    return redis.hincrby(hashKey, field, by);
+  const client = await getClient();
+
+  if (client) {
+    const next = await client.hIncrBy(hashKey, field, by);
+    if (next < 0) {
+      await client.hSet(hashKey, field, "0");
+      return 0;
+    }
+    return next;
   }
 
   const hash = memoryHashStore.get(hashKey) ?? new Map<string, number>();
@@ -73,8 +89,10 @@ export async function incrementHashField(
 }
 
 export async function readHash(hashKey: string): Promise<Record<string, number>> {
-  if (redis) {
-    const data = (await redis.hgetall<Record<string, unknown>>(hashKey)) ?? {};
+  const client = await getClient();
+
+  if (client) {
+    const data = await client.hGetAll(hashKey);
     return Object.fromEntries(
       Object.entries(data).map(([field, value]) => [field, Number(value)])
     );
