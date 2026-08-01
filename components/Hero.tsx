@@ -186,7 +186,7 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
           className="label-mono mt-4 text-sm text-gold sm:text-base"
         >
-          Fête ses 22 ans
+          Bientôt 22 ans
         </motion.p>
 
         {countdown && !countdown.isPast && (
