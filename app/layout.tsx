@@ -26,13 +26,13 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Valdes fête ses 22 ans",
+  title: "Valdes Banhatio — Bientôt 22 ans",
   description:
-    "Rejoins Valdes Banhatio pour célébrer ses 22 ans le lundi 3 août — livre d'or, cagnotte, gâteau et souvenirs.",
+    "Un petit coin pour souhaiter un joyeux anniversaire à Valdes Banhatio le lundi 3 août — livre d'or, cagnotte, gâteau et souvenirs.",
   openGraph: {
-    title: "Valdes fête ses 22 ans",
+    title: "Valdes Banhatio — Bientôt 22 ans",
     description:
-      "Rejoins Valdes Banhatio pour célébrer ses 22 ans — livre d'or, cagnotte, gâteau et souvenirs.",
+      "Un petit coin pour souhaiter un joyeux anniversaire à Valdes Banhatio — livre d'or, cagnotte, gâteau et souvenirs.",
     type: "website",
   },
 };

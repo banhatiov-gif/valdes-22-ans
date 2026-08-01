@@ -10,7 +10,7 @@ export default function ShareButton() {
   async function handleShare() {
     const url = window.location.href;
     const shareData = {
-      title: "Valdes fête ses 22 ans",
+      title: "Valdes Banhatio — Bientôt 22 ans",
       text: "Viens souhaiter un joyeux anniversaire à Valdes !",
       url,
     };

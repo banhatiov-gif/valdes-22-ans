@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Valdes Banhatio fête ses 22 ans — Lundi 3 août";
+export const alt = "Valdes Banhatio — Bientôt 22 ans — Lundi 3 août";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -84,7 +84,7 @@ export default function OpengraphImage() {
               color: "#f0b429",
             }}
           >
-            Fête ses 22 ans
+            Bientôt 22 ans
           </div>
         </div>
       </div>
