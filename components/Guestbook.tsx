@@ -15,6 +15,7 @@ const ROTATIONS = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2", "rotate-3",
 const CELEBRATION_MILESTONES = [10, 25, 50, 100, 200];
 const REACTED_KEY = "valdes22-reactions";
 const REACTOR_NAME_MAX = 40;
+const VISITOR_NAME_KEY = "valdes22-name";
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -34,6 +35,7 @@ export default function Guestbook() {
   const [reactionNames, setReactionNames] = useState<Record<string, string[]>>({});
   const [reactedNames, setReactedNames] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [visitorName, setVisitorName] = useState("");
 
   async function loadEntries() {
     setLoadState("loading");
@@ -59,16 +61,22 @@ export default function Guestbook() {
       .then((data) => data && setReactionNames(data.reactions ?? {}))
       .catch(() => {});
 
-    const stored = localStorage.getItem(REACTED_KEY);
-    if (stored) {
-      try {
+    try {
+      const stored = localStorage.getItem(REACTED_KEY);
+      if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
           setReactedNames(parsed);
         }
-      } catch {
-        // ignore malformed local data
       }
+    } catch {
+      // ignore malformed local data
+    }
+
+    try {
+      setVisitorName(localStorage.getItem(VISITOR_NAME_KEY) ?? "");
+    } catch {
+      // stockage indisponible — on redemandera simplement le prénom
     }
   }, []);
 
@@ -103,10 +111,19 @@ export default function Guestbook() {
       return;
     }
 
-    const reactorName = window.prompt("Ton prénom, pour laisser un cœur ?")
-      ?.trim()
-      .slice(0, REACTOR_NAME_MAX);
+    const reactorName = (
+      visitorName || window.prompt("Ton prénom, pour laisser un cœur ?")?.trim() || ""
+    ).slice(0, REACTOR_NAME_MAX);
     if (!reactorName) return;
+
+    if (!visitorName) {
+      setVisitorName(reactorName);
+      try {
+        localStorage.setItem(VISITOR_NAME_KEY, reactorName);
+      } catch {
+        // stockage indisponible — on redemandera la prochaine fois
+      }
+    }
 
     setReactionNames((prev) => ({
       ...prev,
@@ -154,6 +171,12 @@ export default function Guestbook() {
       });
       setName("");
       setMessage("");
+      setVisitorName(trimmedName);
+      try {
+        localStorage.setItem(VISITOR_NAME_KEY, trimmedName);
+      } catch {
+        // stockage indisponible — on redemandera le prénom au moment du like
+      }
     } catch {
       setSubmitError("Le message n'a pas pu être envoyé. Réessaie.");
     } finally {
