@@ -58,6 +58,7 @@ export default function Hero() {
   const photoRef = useRef<HTMLButtonElement>(null);
   const [canTilt, setCanTilt] = useState(false);
   const [countdown, setCountdown] = useState<Countdown | null>(null);
+  const firedTodayConfetti = useRef(false);
 
   useEffect(() => {
     setCanTilt(window.matchMedia("(pointer: fine) and (hover: hover)").matches);
@@ -65,6 +66,21 @@ export default function Hero() {
     const interval = setInterval(() => setCountdown(getCountdown()), 1_000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if ((countdown?.isToday || countdown?.isPast) && !firedTodayConfetti.current) {
+      firedTodayConfetti.current = true;
+      fireConfetti({ particleCount: 220 });
+    }
+  }, [countdown]);
+
+  const subtitleText = !countdown
+    ? "Bientôt 22 ans"
+    : countdown.isPast
+      ? "A 22 ans 🎉"
+      : countdown.isToday
+        ? "22 ans aujourd'hui 🎉"
+        : "Bientôt 22 ans";
 
   const mvX = useMotionValue(0);
   const mvY = useMotionValue(0);
@@ -186,7 +202,7 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
           className="label-mono mt-4 text-sm text-gold sm:text-base"
         >
-          Bientôt 22 ans
+          {subtitleText}
         </motion.p>
 
         {countdown && !countdown.isPast && (

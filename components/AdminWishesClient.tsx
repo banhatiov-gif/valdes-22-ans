@@ -25,15 +25,24 @@ export default function AdminWishesClient() {
       });
       if (res.status === 401) {
         setErrorMsg("Mot de passe incorrect.");
-        sessionStorage.removeItem(SESSION_KEY);
+        try {
+          sessionStorage.removeItem(SESSION_KEY);
+        } catch {
+          // stockage indisponible (navigation privée, navigateur intégré...)
+        }
         setState("locked");
         return;
       }
       if (!res.ok) throw new Error("failed");
       const data = await res.json();
       setWishes(data.wishes ?? []);
-      sessionStorage.setItem(SESSION_KEY, key);
       setState("unlocked");
+      try {
+        sessionStorage.setItem(SESSION_KEY, key);
+      } catch {
+        // stockage indisponible — on reste déverrouillé pour cette session,
+        // il faudra juste retaper le mot de passe la prochaine fois
+      }
     } catch {
       setErrorMsg("Impossible de charger les vœux. Réessaie.");
       setState("locked");
@@ -41,7 +50,12 @@ export default function AdminWishesClient() {
   }
 
   useEffect(() => {
-    const stored = sessionStorage.getItem(SESSION_KEY);
+    let stored: string | null = null;
+    try {
+      stored = sessionStorage.getItem(SESSION_KEY);
+    } catch {
+      stored = null;
+    }
     if (stored) unlock(stored);
   }, []);
 
