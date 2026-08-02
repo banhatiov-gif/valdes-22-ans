@@ -6,6 +6,7 @@ import { Send, Loader2, AlertCircle, MessageSquareHeart, PartyPopper, Heart } fr
 import type { GuestbookEntry } from "@/lib/types";
 import { fireConfetti } from "@/lib/confetti";
 import SpecialMessage from "@/components/SpecialMessage";
+import ScrollCue from "@/components/ScrollCue";
 
 const NAME_MAX = 40;
 const MESSAGE_MAX = 280;
@@ -13,6 +14,7 @@ const POSTIT_COLORS = ["bg-gold", "bg-coral", "bg-teal"];
 const ROTATIONS = ["-rotate-2", "rotate-1", "-rotate-1", "rotate-2", "rotate-3", "-rotate-3"];
 const CELEBRATION_MILESTONES = [10, 25, 50, 100, 200];
 const REACTED_KEY = "valdes22-reactions";
+const REACTOR_NAME_MAX = 40;
 
 type LoadState = "loading" | "ready" | "error";
 
@@ -29,8 +31,9 @@ export default function Guestbook() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
-  const [reacted, setReacted] = useState<Set<string>>(new Set());
+  const [reactionNames, setReactionNames] = useState<Record<string, string[]>>({});
+  const [reactedNames, setReactedNames] = useState<Record<string, string>>({});
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   async function loadEntries() {
     setLoadState("loading");
@@ -53,13 +56,16 @@ export default function Guestbook() {
       .catch(() => {});
     fetch("/api/reactions", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setReactionCounts(data.reactions ?? {}))
+      .then((data) => data && setReactionNames(data.reactions ?? {}))
       .catch(() => {});
 
     const stored = localStorage.getItem(REACTED_KEY);
     if (stored) {
       try {
-        setReacted(new Set(JSON.parse(stored)));
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          setReactedNames(parsed);
+        }
       } catch {
         // ignore malformed local data
       }
@@ -67,21 +73,48 @@ export default function Guestbook() {
   }, []);
 
   async function handleReact(entryId: string) {
-    const alreadyReacted = reacted.has(entryId);
-    const action = alreadyReacted ? "unreact" : "react";
+    const alreadyReacted = entryId in reactedNames;
 
-    setReactionCounts((prev) => ({
-      ...prev,
-      [entryId]: Math.max(0, (prev[entryId] ?? 0) + (alreadyReacted ? -1 : 1)),
-    }));
-    setReacted((prev) => {
-      const next = new Set(prev);
-      if (alreadyReacted) {
-        next.delete(entryId);
-      } else {
-        next.add(entryId);
+    if (alreadyReacted) {
+      const reactorName = reactedNames[entryId];
+      if (!reactorName) return;
+      setReactionNames((prev) => ({
+        ...prev,
+        [entryId]: (prev[entryId] ?? []).filter(
+          (n) => n.toLowerCase() !== reactorName.toLowerCase()
+        ),
+      }));
+      setReactedNames((prev) => {
+        const next = { ...prev };
+        delete next[entryId];
+        localStorage.setItem(REACTED_KEY, JSON.stringify(next));
+        return next;
+      });
+
+      try {
+        await fetch("/api/reactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ entryId, name: reactorName, action: "unreact" }),
+        });
+      } catch {
+        // best-effort — a refresh will resync the real list if this failed
       }
-      localStorage.setItem(REACTED_KEY, JSON.stringify([...next]));
+      return;
+    }
+
+    const reactorName = window.prompt("Ton prénom, pour laisser un cœur ?")
+      ?.trim()
+      .slice(0, REACTOR_NAME_MAX);
+    if (!reactorName) return;
+
+    setReactionNames((prev) => ({
+      ...prev,
+      [entryId]: [...(prev[entryId] ?? []), reactorName],
+    }));
+    setReactedNames((prev) => {
+      const next = { ...prev, [entryId]: reactorName };
+      localStorage.setItem(REACTED_KEY, JSON.stringify(next));
       return next;
     });
 
@@ -89,10 +122,10 @@ export default function Guestbook() {
       await fetch("/api/reactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ entryId, action }),
+        body: JSON.stringify({ entryId, name: reactorName, action: "react" }),
       });
     } catch {
-      // best-effort — a refresh will resync the real count if this failed
+      // best-effort — a refresh will resync the real list if this failed
     }
   }
 
@@ -285,9 +318,9 @@ export default function Guestbook() {
                       <button
                         type="button"
                         onClick={() => handleReact(entry.id)}
-                        aria-pressed={reacted.has(entry.id)}
+                        aria-pressed={entry.id in reactedNames}
                         aria-label={
-                          reacted.has(entry.id)
+                          entry.id in reactedNames
                             ? "Retirer mon cœur"
                             : "Envoyer un cœur"
                         }
@@ -295,12 +328,32 @@ export default function Guestbook() {
                       >
                         <Heart
                           size={12}
-                          className={reacted.has(entry.id) ? "fill-current" : ""}
+                          className={entry.id in reactedNames ? "fill-current" : ""}
                           aria-hidden="true"
                         />
-                        {reactionCounts[entry.id] ?? 0}
+                        {(reactionNames[entry.id] ?? []).length}
                       </button>
                     </div>
+                    {(reactionNames[entry.id] ?? []).length > 0 && (
+                      <div className="mt-1 text-right">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedId((current) =>
+                              current === entry.id ? null : entry.id
+                            )
+                          }
+                          className="text-[0.65rem] font-semibold text-plum-deep/60 underline-offset-2 hover:underline"
+                        >
+                          {expandedId === entry.id ? "Masquer" : "Qui a aimé ?"}
+                        </button>
+                        {expandedId === entry.id && (
+                          <p className="mt-1 text-[0.65rem] text-plum-deep/70">
+                            {(reactionNames[entry.id] ?? []).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </motion.li>
                 ))}
               </AnimatePresence>
@@ -309,6 +362,8 @@ export default function Guestbook() {
         </div>
 
         <SpecialMessage />
+
+        <ScrollCue href="#cagnotte" label="Cagnotte" />
       </div>
     </section>
   );

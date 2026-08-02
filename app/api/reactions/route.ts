@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { incrementHashField, readHash, deleteHashField } from "@/lib/redis";
+import { getHashField, setHashField, readHash, deleteHashField } from "@/lib/redis";
 
 export const dynamic = "force-dynamic";
 
 const KEY = "guestbook:reactions";
+const NAME_MAX = 40;
+
+function parseNames(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((n): n is string => typeof n === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 export async function GET() {
   try {
-    const reactions = await readHash(KEY);
+    const raw = await readHash(KEY);
+    const reactions = Object.fromEntries(
+      Object.entries(raw).map(([entryId, value]) => [entryId, parseNames(value)])
+    );
     return NextResponse.json({ reactions });
   } catch (error) {
     console.error("[reactions:GET]", error);
@@ -22,17 +38,28 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const entryId = typeof body?.entryId === "string" ? body.entryId : "";
-    const action = body?.action === "unreact" ? -1 : 1;
+    const name =
+      typeof body?.name === "string" ? body.name.trim().slice(0, NAME_MAX) : "";
+    const action = body?.action === "unreact" ? "unreact" : "react";
 
-    if (!entryId) {
+    if (!entryId || !name) {
       return NextResponse.json(
-        { error: "entryId requis." },
+        { error: "entryId et prénom requis." },
         { status: 400 }
       );
     }
 
-    const count = await incrementHashField(KEY, entryId, action);
-    return NextResponse.json({ entryId, count });
+    const names = parseNames(await getHashField(KEY, entryId));
+    const next =
+      action === "unreact"
+        ? names.filter((n) => n.toLowerCase() !== name.toLowerCase())
+        : names.some((n) => n.toLowerCase() === name.toLowerCase())
+          ? names
+          : [...names, name];
+
+    await setHashField(KEY, entryId, JSON.stringify(next));
+
+    return NextResponse.json({ entryId, names: next });
   } catch (error) {
     console.error("[reactions:POST]", error);
     return NextResponse.json(

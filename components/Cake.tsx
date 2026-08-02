@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wind, Send, Check, PartyPopper } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
+import ScrollCue from "@/components/ScrollCue";
 
 const CANDLE_X = [90, 130, 170, 210, 250];
 const WISH_MAX = 140;
@@ -230,6 +231,8 @@ export default function Cake() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ScrollCue href="#galerie" label="Souvenirs" />
     </section>
   );
 }

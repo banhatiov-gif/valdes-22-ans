@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Baby, GraduationCap, Award, Code2, type LucideIcon } from "lucide-react";
+import { Baby, GraduationCap, Award, Code2, Heart, type LucideIcon } from "lucide-react";
+import { fireConfetti } from "@/lib/confetti";
 
 interface StoryPhoto {
   src: string;
@@ -178,6 +179,27 @@ export default function Gallery() {
             })}
           </ol>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          onViewportEnter={() => fireConfetti({ particleCount: 200 })}
+          transition={{ duration: 0.7 }}
+          className="glass mx-auto mt-24 max-w-md rounded-2xl p-8 text-center"
+        >
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold/15 text-gold">
+            <Heart size={22} aria-hidden="true" />
+          </div>
+          <p className="label-mono mt-4 text-xs text-gold">Tu es arrivé jusqu&apos;au bout</p>
+          <h3 className="section-heading mt-3 text-2xl text-cream sm:text-3xl">
+            Merci d&apos;être là
+          </h3>
+          <p className="mx-auto mt-3 max-w-sm text-sm text-cream/70">
+            Merci d&apos;avoir pris le temps de faire défiler toute cette page
+            jusqu&apos;ici. Ça compte énormément pour moi.
+          </p>
+        </motion.div>
       </div>
     </section>
   );

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { MessageCircle, Gift } from "lucide-react";
+import ScrollCue from "@/components/ScrollCue";
 
 const PHONE = "237681920007";
 const MESSAGE =
@@ -12,7 +13,7 @@ export default function Cagnotte() {
   return (
     <section
       id="cagnotte"
-      className="relative flex min-h-screen w-full items-center justify-center bg-plum-deep px-4 py-24"
+      className="relative flex min-h-screen w-full flex-col items-center justify-center bg-plum-deep px-4 py-24"
     >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -54,6 +55,8 @@ export default function Cagnotte() {
           Écrire sur WhatsApp
         </motion.a>
       </motion.div>
+
+      <ScrollCue href="#gateau" label="Gâteau" />
     </section>
   );
 }

@@ -25,7 +25,7 @@ async function getClient(): Promise<RedisClientType | null> {
 // Fallback en mémoire pour le développement local sans Redis.
 // Non partagé entre instances serverless : uniquement pour dev.
 const memoryStore = new Map<string, string[]>();
-const memoryHashStore = new Map<string, Map<string, number>>();
+const memoryHashStore = new Map<string, Map<string, string>>();
 
 export async function pushToList(
   key: string,
@@ -101,40 +101,45 @@ export async function listLength(key: string): Promise<number> {
   return (memoryStore.get(key) ?? []).length;
 }
 
-export async function incrementHashField(
+export async function getHashField(
   hashKey: string,
-  field: string,
-  by: number
-): Promise<number> {
+  field: string
+): Promise<string | null> {
   const client = await getClient();
 
   if (client) {
-    const next = await client.hIncrBy(hashKey, field, by);
-    if (next < 0) {
-      await client.hSet(hashKey, field, "0");
-      return 0;
-    }
-    return next;
+    const value = await client.hGet(hashKey, field);
+    return value ?? null;
   }
 
-  const hash = memoryHashStore.get(hashKey) ?? new Map<string, number>();
-  const next = Math.max(0, (hash.get(field) ?? 0) + by);
-  hash.set(field, next);
-  memoryHashStore.set(hashKey, hash);
-  return next;
+  return memoryHashStore.get(hashKey)?.get(field) ?? null;
 }
 
-export async function readHash(hashKey: string): Promise<Record<string, number>> {
+export async function setHashField(
+  hashKey: string,
+  field: string,
+  value: string
+): Promise<void> {
   const client = await getClient();
 
   if (client) {
-    const data = await client.hGetAll(hashKey);
-    return Object.fromEntries(
-      Object.entries(data).map(([field, value]) => [field, Number(value)])
-    );
+    await client.hSet(hashKey, field, value);
+    return;
   }
 
-  const hash = memoryHashStore.get(hashKey) ?? new Map<string, number>();
+  const hash = memoryHashStore.get(hashKey) ?? new Map<string, string>();
+  hash.set(field, value);
+  memoryHashStore.set(hashKey, hash);
+}
+
+export async function readHash(hashKey: string): Promise<Record<string, string>> {
+  const client = await getClient();
+
+  if (client) {
+    return client.hGetAll(hashKey);
+  }
+
+  const hash = memoryHashStore.get(hashKey) ?? new Map<string, string>();
   return Object.fromEntries(hash);
 }
 
