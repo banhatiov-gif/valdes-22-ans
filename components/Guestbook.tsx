@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, AlertCircle, MessageSquareHeart, PartyPopper, Heart } from "lucide-react";
 import type { GuestbookEntry } from "@/lib/types";
 import { fireConfetti } from "@/lib/confetti";
+import SpecialMessage from "@/components/SpecialMessage";
 
 const NAME_MAX = 40;
 const MESSAGE_MAX = 280;
@@ -228,6 +229,8 @@ export default function Guestbook() {
             {submitting ? "Envoi..." : "Signer le livre d'or"}
           </motion.button>
         </motion.form>
+
+        <SpecialMessage />
 
         <div aria-live="polite">
           {loadState === "loading" && (
