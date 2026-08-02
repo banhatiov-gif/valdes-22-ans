@@ -59,7 +59,7 @@ export default function Nav() {
                   href={href}
                   aria-current={isActive ? "true" : undefined}
                   aria-label={label}
-                  className={`relative flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 py-3 text-xs font-semibold transition-colors sm:min-h-0 sm:min-w-0 sm:px-4 sm:py-2 sm:text-sm ${
+                  className={`relative flex min-h-11 min-w-11 flex-col items-center justify-center gap-0.5 rounded-2xl px-2.5 py-1.5 text-[0.5rem] font-semibold leading-none whitespace-nowrap transition-colors sm:min-h-0 sm:min-w-0 sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:whitespace-normal ${
                     isActive
                       ? "text-plum-deep"
                       : "text-cream/80 hover:text-cream"
@@ -68,7 +68,7 @@ export default function Nav() {
                   {isActive && (
                     <motion.span
                       layoutId="nav-pill"
-                      className="absolute inset-0 rounded-full bg-gold"
+                      className="absolute inset-0 rounded-2xl bg-gold sm:rounded-full"
                       transition={{ type: "spring", stiffness: 400, damping: 32 }}
                     />
                   )}
@@ -76,7 +76,7 @@ export default function Nav() {
                     className="relative z-10 h-6 w-6 shrink-0 sm:h-[15px] sm:w-[15px]"
                     aria-hidden="true"
                   />
-                  <span className="relative z-10 hidden sm:inline">{label}</span>
+                  <span className="relative z-10">{label}</span>
                 </a>
               </li>
             );
