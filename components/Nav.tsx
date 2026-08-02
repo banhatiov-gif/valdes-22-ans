@@ -7,8 +7,8 @@ import { Sparkles, Gift, Cake, BookHeart, Footprints } from "lucide-react";
 const LINKS = [
   { href: "#hero", label: "Accueil", icon: Sparkles },
   { href: "#livre-or", label: "Livre d'or", icon: BookHeart },
-  { href: "#gateau", label: "Gâteau", icon: Cake },
   { href: "#cagnotte", label: "Cagnotte", icon: Gift },
+  { href: "#gateau", label: "Gâteau", icon: Cake },
   { href: "#galerie", label: "Chemin", icon: Footprints },
 ] as const;
 

@@ -70,7 +70,7 @@ export default function Cake() {
   return (
     <section
       id="gateau"
-      className="relative flex min-h-screen w-full flex-col items-center justify-center bg-plum-deep px-4 py-24"
+      className="relative flex min-h-screen w-full flex-col items-center justify-center bg-plum px-4 py-24"
     >
       <motion.div
         initial={{ opacity: 0, y: 30 }}

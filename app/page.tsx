@@ -15,8 +15,8 @@ export default function Home() {
       <Nav />
       <Hero />
       <Guestbook />
-      <Cake />
       <Cagnotte />
+      <Cake />
       <Gallery />
     </main>
   );

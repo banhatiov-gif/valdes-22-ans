@@ -12,7 +12,7 @@ export default function Cagnotte() {
   return (
     <section
       id="cagnotte"
-      className="relative flex min-h-screen w-full items-center justify-center bg-plum px-4 py-24"
+      className="relative flex min-h-screen w-full items-center justify-center bg-plum-deep px-4 py-24"
     >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -22,17 +22,17 @@ export default function Cagnotte() {
         className="glass relative w-full max-w-xl overflow-hidden rounded-3xl p-8 text-center sm:p-12"
       >
         <div
-          className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-teal/20 blur-3xl"
+          className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gold/25 blur-3xl animate-pulse-glow"
           aria-hidden="true"
         />
 
-        <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
-          <Gift size={26} aria-hidden="true" />
+        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold/20 text-gold">
+          <Gift size={30} aria-hidden="true" />
         </div>
 
-        <p className="label-mono relative mt-6 text-xs text-teal">Cagnotte d&apos;anniversaire</p>
+        <p className="label-mono relative mt-6 text-xs text-gold">Cagnotte d&apos;anniversaire</p>
 
-        <h2 className="section-heading relative mt-3 text-3xl text-cream sm:text-4xl">
+        <h2 className="section-heading relative mt-3 text-4xl text-cream sm:text-5xl">
           Envie de contribuer ?
         </h2>
 
