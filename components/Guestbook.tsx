@@ -230,8 +230,6 @@ export default function Guestbook() {
           </motion.button>
         </motion.form>
 
-        <SpecialMessage />
-
         <div aria-live="polite">
           {loadState === "loading" && (
             <div className="flex items-center justify-center gap-2 py-12 text-cream/60">
@@ -309,6 +307,8 @@ export default function Guestbook() {
             </ul>
           )}
         </div>
+
+        <SpecialMessage />
       </div>
     </section>
   );

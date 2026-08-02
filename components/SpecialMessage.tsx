@@ -25,7 +25,7 @@ export default function SpecialMessage() {
     if (password.trim().toLowerCase() === PASSWORD) {
       setUnlocked(true);
       setError(false);
-      fireConfetti({ particleCount: 160 });
+      fireConfetti({ particleCount: 80 });
     } else {
       setError(true);
     }
@@ -33,26 +33,21 @@ export default function SpecialMessage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.7 }}
-      className="glass relative mx-auto mb-16 max-w-xl overflow-hidden rounded-2xl p-6 text-center sm:p-8"
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.6 }}
+      className="relative mx-auto mt-16 max-w-sm rounded-xl border border-cream/10 p-4 text-center"
     >
-      <div
-        className="pointer-events-none absolute -top-20 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-coral/20 blur-3xl"
-        aria-hidden="true"
-      />
-
-      <div className="relative mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-coral/15 text-coral">
+      <div className="relative mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-cream/5 text-cream/50">
         {unlocked ? (
-          <HeartHandshake size={22} aria-hidden="true" />
+          <HeartHandshake size={14} aria-hidden="true" />
         ) : (
-          <Lock size={20} aria-hidden="true" />
+          <Lock size={13} aria-hidden="true" />
         )}
       </div>
 
-      <p className="label-mono relative mt-4 text-xs text-coral">Message spécial</p>
+      <p className="label-mono relative mt-2 text-[0.65rem] text-cream/40">Message spécial</p>
 
       <AnimatePresence mode="wait">
         {!unlocked ? (
@@ -62,17 +57,13 @@ export default function SpecialMessage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onSubmit={handleSubmit}
-            className="relative mt-3"
+            className="relative mt-2"
           >
-            <h3 className="section-heading text-xl text-cream sm:text-2xl">
-              Un mot rien que pour toi
-            </h3>
-            <p className="mx-auto mt-2 max-w-sm text-sm text-cream/60">
-              Cette carte est protégée par un mot de passe. Tu sais qui te l&apos;a
-              donné.
+            <p className="mx-auto max-w-xs text-xs text-cream/45">
+              Protégé par un mot de passe. Tu sais qui te l&apos;a donné.
             </p>
 
-            <div className="mx-auto mt-4 flex max-w-xs items-center gap-2">
+            <div className="mx-auto mt-3 flex max-w-[15rem] items-center gap-1.5">
               <input
                 type="password"
                 value={password}
@@ -81,20 +72,20 @@ export default function SpecialMessage() {
                   setError(false);
                 }}
                 placeholder="Mot de passe"
-                className="w-full rounded-xl border border-cream/15 bg-plum-deep/60 px-4 py-3 text-sm text-cream placeholder:text-cream/35 focus:border-coral"
+                className="w-full rounded-lg border border-cream/10 bg-plum-deep/40 px-3 py-2 text-xs text-cream placeholder:text-cream/30 focus:border-cream/30"
                 aria-invalid={error}
               />
               <button
                 type="submit"
-                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-coral px-4 py-3 text-sm font-bold text-plum-deep transition-transform hover:scale-105 active:scale-95"
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-cream/10 px-3 py-2 text-xs font-semibold text-cream/70 transition-colors hover:bg-cream/15 hover:text-cream"
               >
-                <Unlock size={16} aria-hidden="true" />
+                <Unlock size={13} aria-hidden="true" />
               </button>
             </div>
 
             {error && (
-              <p role="alert" className="mt-2 text-xs text-coral">
-                Mot de passe incorrect. Réessaie.
+              <p role="alert" className="mt-2 text-[0.65rem] text-coral">
+                Mot de passe incorrect.
               </p>
             )}
           </motion.form>
@@ -104,12 +95,10 @@ export default function SpecialMessage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="relative mt-3"
+            className="relative mt-2"
           >
-            <h3 className="section-heading text-xl text-cream sm:text-2xl">
-              De la part d&apos;Elza
-            </h3>
-            <div className="mx-auto mt-4 max-w-md space-y-4 text-left text-sm leading-relaxed text-cream/85 sm:text-base">
+            <p className="text-xs font-semibold text-cream/60">De la part d&apos;Elza</p>
+            <div className="mx-auto mt-3 max-w-xs space-y-3 text-left text-xs leading-relaxed text-cream/70">
               {MESSAGE_PARAGRAPHS.map((paragraph, i) => (
                 <p key={i}>{paragraph}</p>
               ))}
